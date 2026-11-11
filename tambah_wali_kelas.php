@@ -1,10 +1,11 @@
+
 <?php
 // tambah_wali_kelas.php
+
 include 'includes/cek_session.php';
 include 'config/koneksi.php';
 
-
-// 1. Mengambil tahun ajaran yang aktif
+// 1. Mengambil tahun ajaran aktif
 $tahun = mysqli_query(
     $koneksi,
     "SELECT id, nama
@@ -13,31 +14,34 @@ $tahun = mysqli_query(
      ORDER BY id DESC"
 );
 
-// 2. Mengambil kelas yang belum memiliki wali kelas
+if (!$tahun) {
+    die("Gagal mengambil tahun ajaran: " . mysqli_error($koneksi));
+}
+
+// 2. Mengambil SEMUA kelas yang aktif
 $kelas = mysqli_query(
     $koneksi,
     "SELECT id, nama
      FROM t_kelas
-     WHERE id NOT IN (
-         SELECT kelas_id
-         FROM t_wali_kelas
-         WHERE status_aktif = 1
-     )
+     WHERE status_aktif = 1
      ORDER BY nama ASC"
 );
 
-// 3. Mengambil guru yang belum menjadi wali kelas
+if (!$kelas) {
+    die("Gagal mengambil data kelas: " . mysqli_error($koneksi));
+}
+
+// 3. Mengambil semua guru
 $guru = mysqli_query(
     $koneksi,
     "SELECT id, nama
      FROM t_guru
-     WHERE id NOT IN (
-         SELECT guru_id
-         FROM t_wali_kelas
-         WHERE status_aktif = 1
-     )
      ORDER BY nama ASC"
 );
+
+if (!$guru) {
+    die("Gagal mengambil data guru: " . mysqli_error($koneksi));
+}
 ?>
 
 <!DOCTYPE html>
@@ -49,9 +53,8 @@ $guru = mysqli_query(
 
     <title>Tambah Wali Kelas</title>
 
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
 
 <body>
@@ -70,7 +73,7 @@ $guru = mysqli_query(
             <div class="card shadow-sm">
 
                 <div class="card-header bg-primary text-white">
-                    Form Tambah Wali Kelas
+                     <h5 class="mb-0">Form Tambah Wali Kelas</h5>
                 </div>
 
                 <div class="card-body">
@@ -188,15 +191,17 @@ $guru = mysqli_query(
                             </select>
                         </div>
 
-                        <!-- TOMBOL -->
-                        <button type="submit" class="btn btn-primary">
-                            Simpan Wali Kelas
-                        </button>
-
-                        <a href="kelola_wali_kelas.php"
-                           class="btn btn-secondary">
-                            Kembali
-                        </a>
+                           <!-- Tombol -->
+                <button type="submit" name="simpan" value="1" class="btn btn-primary px-4">
+                    <i class="bi bi-save me-1"></i>
+                    Simpan Wali Kelas
+                </button>
+                
+                    <button type="reset" class="btn btn-outline-secondary px-4 ms-1">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        Reset
+                    </button>
+                </div>
 
                     </form>
 
