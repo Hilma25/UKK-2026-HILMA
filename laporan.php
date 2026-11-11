@@ -218,7 +218,7 @@ $hasil = mysqli_stmt_get_result($stmt);
             <!-- FILTER TANGGAL -->
             <div class="card shadow-sm mb-4 no-print">
                 <div class="card-header bg-primary text-white">
-                    Filter Laporan
+                    <h5 class="mb-0"> Filter Laporan</h5>
                 </div>
 
                 <div class="card-body">
@@ -267,9 +267,9 @@ $hasil = mysqli_stmt_get_result($stmt);
             <!-- TABEL LAPORAN -->
             <div class="card shadow-sm">
 
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
 
-                    <span>Data Laporan Pelanggaran</span>
+                     <h5 class="mb-0">Data Laporan Pelanggaran</h5>
 
                     <button type="button"
                         onclick="window.print()"

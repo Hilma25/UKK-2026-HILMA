@@ -1,6 +1,13 @@
 
 <?php
+// login.php
 session_start();
+
+// Jika sudah login, arahkan ke dashboard
+if (isset($_SESSION['id_user'])) {
+    header("Location: dashboard.php");
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -9,161 +16,158 @@ session_start();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Pelanggaran Siswa</title>
 
-    <title>Login - Aplikasi Pelanggaran Siswa</title>
-
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <!-- Bootstrap 5.3.8 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
-          rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #e8f0fe, #f5f7fb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 35px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .login-icon {
+            width: 75px;
+            height: 75px;
+            background: #e8f0fe;
+            color: #0d6efd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 35px;
+            margin: 0 auto 18px;
+        }
+
+        .form-control {
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .btn-login {
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .login-footer {
+            color: #6c757d;
+            font-size: 13px;
+        }
+    </style>
 </head>
 
-<body class="bg-light">
+<body>
 
-    <div class="container min-vh-100 d-flex justify-content-center align-items-center">
+    <div class="container px-3">
 
-        <div class="row justify-content-center w-100">
+        <div class="login-card mx-auto">
 
-            <div class="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
+            <!-- Logo / Icon -->
+            <div class="login-icon">
+                <i class="bi bi-shield-check"></i>
+            </div>
 
-                <!-- CARD LOGIN -->
-                <div class="card border-0 shadow-lg rounded-4">
+            <!-- Judul -->
+            <div class="text-center mb-4">
+                <h4 class="fw-bold mb-2">Pelanggaran Siswa</h4>
+                <p class="text-secondary mb-0">
+                    Silakan login untuk melanjutkan
+                </p>
+            </div>
 
-                    <div class="card-body p-4 p-md-5">
+            <!-- Pesan Error -->
+            <?php if (isset($_SESSION['pesan_error'])) { ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <?= htmlspecialchars($_SESSION['pesan_error']) ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <?php unset($_SESSION['pesan_error']); ?>
+            <?php } ?>
 
-                        <!-- Logo dan Judul -->
-                        <div class="text-center mb-4">
+            <!-- Form Login -->
+            <form action="proses_login.php" method="POST">
 
-                            <div class="bg-primary text-white rounded-circle d-inline-flex justify-content-center align-items-center mb-3"
-                                 style="width: 85px; height: 85px;">
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-semibold">
+                        Email
+                    </label>
 
-                                <i class="bi bi-mortarboard-fill fs-1"></i>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">
+                            <i class="bi bi-envelope"></i>
+                        </span>
 
-                            </div>
-
-                            <h3 class="fw-bold text-dark mb-2">
-                                Selamat Datang!
-                            </h3>
-
-                            <h5 class="text-primary fw-semibold">
-                                Aplikasi Pelanggaran Siswa
-                            </h5>
-
-                            <p class="text-muted small mt-2 mb-0">
-                                Silakan login untuk mengakses sistem
-                            </p>
-
-                        </div>
-
-                        <hr class="mb-4">
-
-                        <!-- Pesan Error -->
-                        <?php if (isset($_SESSION['pesan_error'])): ?>
-
-                            <div class="alert alert-danger alert-dismissible fade show"
-                                 role="alert">
-
-                                <i class="bi bi-exclamation-circle-fill me-2"></i>
-
-                                <?= htmlspecialchars($_SESSION['pesan_error'], ENT_QUOTES, 'UTF-8'); ?>
-
-                                <button type="button"
-                                        class="btn-close"
-                                        data-bs-dismiss="alert"
-                                        aria-label="Close"></button>
-
-                            </div>
-
-                            <?php unset($_SESSION['pesan_error']); ?>
-
-                        <?php endif; ?>
-
-                        <!-- FORM LOGIN -->
-                        <form action="proses_login.php" method="POST">
-
-                            <!-- Email -->
-                            <div class="mb-3">
-
-                                <label for="email" class="form-label fw-semibold">
-                                    <i class="bi bi-envelope-fill text-primary me-1"></i>
-                                    Email Address
-                                </label>
-
-                                <input type="email"
-                                       name="email"
-                                       id="email"
-                                       class="form-control form-control-lg"
-                                       placeholder="Masukkan email Anda"
-                                       autocomplete="username"
-                                       required>
-
-                            </div>
-
-                            <!-- Password -->
-                            <div class="mb-4">
-
-                                <label for="password" class="form-label fw-semibold">
-                                    <i class="bi bi-lock-fill text-primary me-1"></i>
-                                    Password
-                                </label>
-
-                                <div class="input-group">
-
-                                    <input type="password"
-                                           name="password"
-                                           id="password"
-                                           class="form-control form-control-lg border-end-0"
-                                           placeholder="Masukkan password Anda"
-                                           autocomplete="current-password"
-                                           required>
-
-                                    <!-- Tombol Ikon Mata -->
-                                    <button class="btn btn-light border border-start-0"
-                                            type="button"
-                                            id="togglePassword"
-                                            aria-label="Tampilkan password">
-
-                                        <i class="bi bi-eye" id="iconPassword"></i>
-
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                            <!-- Tombol Login -->
-                            <button type="submit"
-                                    class="btn btn-primary btn-lg w-100 fw-semibold">
-
-                                <i class="bi bi-box-arrow-in-right me-2"></i>
-                                LOGIN SEKARANG
-
-                            </button>
-
-                        </form>
-
-                        <!-- Footer -->
-                        <div class="text-center mt-4">
-
-                            <p class="text-muted small mb-1">
-                                Sistem Informasi Pengelolaan
-                                Pelanggaran dan Kedisiplinan Siswa
-                            </p>
-
-                            <hr>
-
-                            <small class="text-secondary">
-                                &copy; <?= date('Y'); ?> Aplikasi Pelanggaran Siswa
-                            </small>
-
-                        </div>
-
+                        <input
+                            type="email"
+                            name="email"
+                            id="email"
+                            class="form-control"
+                            placeholder="Masukkan email"
+                            autocomplete="username"
+                            required>
                     </div>
                 </div>
 
+                <div class="mb-4">
+                    <label for="password" class="form-label fw-semibold">
+                        Password
+                    </label>
+
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">
+                            <i class="bi bi-lock"></i>
+                        </span>
+
+                        <input
+                            type="password"
+                            name="password"
+                            id="password"
+                            class="form-control"
+                            placeholder="Masukkan password"
+                            autocomplete="current-password"
+                            required>
+
+                        <button
+                            class="btn btn-outline-secondary"
+                            type="button"
+                            id="togglePassword"
+                            aria-label="Tampilkan password">
+                            <i class="bi bi-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-login w-100">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>
+                    Login
+                </button>
+
+            </form>
+
+            <hr class="my-4">
+
+            <div class="text-center login-footer">
+                &copy; <?= date('Y') ?> Aplikasi Pelanggaran Siswa
+                <br>
+                Sistem Informasi Sekolah
             </div>
 
         </div>
@@ -173,42 +177,22 @@ session_start();
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JavaScript Tampilkan / Sembunyikan Password -->
+    <!-- Tampilkan / Sembunyikan Password -->
     <script>
-        const password = document.getElementById('password');
         const togglePassword = document.getElementById('togglePassword');
-        const iconPassword = document.getElementById('iconPassword');
+        const password = document.getElementById('password');
+        const eyeIcon = document.getElementById('eyeIcon');
 
         togglePassword.addEventListener('click', function () {
-
             if (password.type === 'password') {
-
-                // Tampilkan password
                 password.type = 'text';
-
-                iconPassword.classList.remove('bi-eye');
-                iconPassword.classList.add('bi-eye-slash');
-
-                togglePassword.setAttribute(
-                    'aria-label',
-                    'Sembunyikan password'
-                );
-
+                eyeIcon.classList.remove('bi-eye');
+                eyeIcon.classList.add('bi-eye-slash');
             } else {
-
-                // Sembunyikan password
                 password.type = 'password';
-
-                iconPassword.classList.remove('bi-eye-slash');
-                iconPassword.classList.add('bi-eye');
-
-                togglePassword.setAttribute(
-                    'aria-label',
-                    'Tampilkan password'
-                );
-
+                eyeIcon.classList.remove('bi-eye-slash');
+                eyeIcon.classList.add('bi-eye');
             }
-
         });
     </script>
 
