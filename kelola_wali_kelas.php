@@ -8,10 +8,12 @@ include 'config/koneksi.php';
 $sql = "SELECT
             w.*,
             k.nama AS nama_kelas,
-            g.nama AS nama_guru
+            g.nama AS nama_guru,
+            t.nama AS tahun_ajaran
         FROM t_wali_kelas w
         LEFT JOIN t_kelas k ON w.kelas_id = k.id
         LEFT JOIN t_guru g ON w.guru_id = g.id
+        LEFT JOIN t_tahun_ajaran t ON w.tahun_ajaran_id = t.id
         ORDER BY w.id DESC";
 
 $hasil = mysqli_query($koneksi, $sql);
@@ -109,9 +111,9 @@ if (!$hasil) {
 
                                     <tr>
                                         <th>No</th>
-                                        <th>Tahun Ajaran ID</th>
-                                        <th>Kelas</th>
                                         <th>Guru</th>
+                                        <th>Kelas</th>
+                                        <th>Tahun Ajaran</th>
                                         <th>Tanggal Mulai</th>
                                         <th>Tanggal Selesai</th>
                                         <th>Status</th>
@@ -131,15 +133,15 @@ if (!$hasil) {
                                             <td></td>
 
                                             <td>
-                                                <?= htmlspecialchars((string) ($row['tahun_ajaran_id'] ?? '')) ?>
+                                                <?= htmlspecialchars($row['nama_guru'] ?? '-') ?>
                                             </td>
 
-                                            <td>
+                                             <td>
                                                 <?= htmlspecialchars($row['nama_kelas'] ?? '-') ?>
                                             </td>
 
                                             <td>
-                                                <?= htmlspecialchars($row['nama_guru'] ?? '-') ?>
+                                            <?= htmlspecialchars($row['tahun_ajaran'] ?? '-') ?>
                                             </td>
 
                                             <td>

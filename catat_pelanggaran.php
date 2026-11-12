@@ -892,47 +892,76 @@ document.getElementById('formPelanggaran')
 </script>
 
 
-<!-- ====================================
-     DATATABLES
-==================================== -->
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
+<!-- DataTables -->
 <script src="https://cdn.datatables.net/2.3.4/js/dataTables.min.js"></script>
+
+<!-- DataTables Bootstrap 5 -->
 <script src="https://cdn.datatables.net/2.3.4/js/dataTables.bootstrap5.min.js"></script>
 
+
+<!-- INISIALISASI DATATABLES -->
 <script>
 
-document.addEventListener('DOMContentLoaded', function () {
+$(document).ready(function () {
 
-    new DataTable('#tabelPelanggaran', {
-
-        pageLength: 10,
-
-        lengthChange: true,
-
-        searching: true,
+    var tabel = $('#tabelPelanggaran').DataTable({
 
         language: {
 
-            lengthMenu: "Tampilkan _MENU_ data",
-
             search: "Cari:",
+
+            lengthMenu: "Tampilkan _MENU_ data",
 
             info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
 
-            infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+            infoEmpty: "Tidak ada data pelanggaran",
 
             infoFiltered: "(difilter dari _MAX_ total data)",
 
-            zeroRecords: "Data tidak ditemukan",
+            zeroRecords: "Data pelanggaran tidak ditemukan",
 
-            emptyTable: "Tidak ada data yang tersedia",
+            emptyTable: "Belum ada data catat pelanggaran",
 
             paginate: {
                 first: "Pertama",
-                previous: "Sebelumnya",
+                last: "Terakhir",
                 next: "Berikutnya",
-                last: "Terakhir"
+                previous: "Sebelumnya"
             }
+
+        },
+
+        pageLength: 10,
+
+        lengthMenu: [5, 10, 25, 50, 100],
+
+        order: [[2, 'asc']],
+
+        columnDefs: [
+            {
+                targets: [0, 7],
+                orderable: false,
+                searchable: false
+            }
+        ],
+
+        // Nomor urut otomatis
+        drawCallback: function () {
+
+            var api = this.api();
+
+            var info = api.page.info();
+
+            api.column(0, {
+                page: 'current'
+            }).nodes().each(function (cell, i) {
+
+                cell.innerHTML = info.start + i + 1;
+
+            });
 
         }
 

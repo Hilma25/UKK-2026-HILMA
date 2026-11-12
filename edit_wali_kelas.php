@@ -32,23 +32,25 @@ if (!$data) {
     exit;
 }
 
-// Ambil data tahun ajaran
-$tahun = mysqli_query(
+// Ambil data guru
+$guru = mysqli_query(
     $koneksi,
-    "SELECT id, nama FROM t_tahun_ajaran ORDER BY id DESC"
+    "SELECT id, nama FROM t_guru ORDER BY nama ASC"
 );
 
 // Ambil data kelas
 $kelas = mysqli_query(
     $koneksi,
     "SELECT id, nama FROM t_kelas ORDER BY nama ASC"
+)
+
+
+// Ambil data tahun ajaran
+$tahun = mysqli_query(
+    $koneksi,
+    "SELECT id, nama FROM t_tahun_ajaran ORDER BY id DESC"
 );
 
-// Ambil data guru
-$guru = mysqli_query(
-    $koneksi,
-    "SELECT id, nama FROM t_guru ORDER BY nama ASC"
-);
 ?>
 
 <!DOCTYPE html>
@@ -113,30 +115,27 @@ $guru = mysqli_query(
                     <form action="proses_edit_wali_kelas.php"
                           method="POST">
 
-                        <input type="hidden"
-                               name="id"
-                               value="<?= (int) $data['id']; ?>">
 
-                        <!-- Tahun Ajaran -->
+                               <!-- Guru -->
                         <div class="mb-3">
 
-                            <label for="tahun_ajaran_id" class="form-label">
-                                Tahun Ajaran
+                            <label for="guru_id" class="form-label">
+                                Guru
                             </label>
 
                             <select class="form-select"
-                                    id="tahun_ajaran_id"
-                                    name="tahun_ajaran_id"
+                                    id="guru_id"
+                                    name="guru_id"
                                     required>
 
                                 <option value="">
-                                    -- Pilih Tahun Ajaran --
+                                    -- Pilih Guru --
                                 </option>
 
-                                <?php while ($row = mysqli_fetch_assoc($tahun)): ?>
+                                <?php while ($row = mysqli_fetch_assoc($guru)): ?>
 
                                     <option value="<?= (int) $row['id']; ?>"
-                                        <?= ($row['id'] == $data['tahun_ajaran_id']) ? 'selected' : ''; ?>>
+                                        <?= ($row['id'] == $data['guru_id']) ? 'selected' : ''; ?>>
 
                                         <?= htmlspecialchars($row['nama']); ?>
 
@@ -148,7 +147,7 @@ $guru = mysqli_query(
 
                         </div>
 
-                        <!-- Kelas -->
+                         <!-- Kelas -->
                         <div class="mb-3">
 
                             <label for="kelas_id" class="form-label">
@@ -179,36 +178,38 @@ $guru = mysqli_query(
 
                         </div>
 
-                        <!-- Guru -->
-                        <div class="mb-3">
+                        <input type="hidden"
+                               name="id"
+                               value="<?= (int) $data['id']; ?>">
 
-                            <label for="guru_id" class="form-label">
-                                Guru
-                            </label>
+                       <!-- PILIH TAHUN AJARAN -->
+                            <div class="col-md-6 mb-3">
 
-                            <select class="form-select"
-                                    id="guru_id"
-                                    name="guru_id"
-                                    required>
+                                <label for="tahun_ajaran_id" class="form-label">
+                                    Tahun Ajaran
+                                </label>
 
-                                <option value="">
-                                    -- Pilih Guru --
-                                </option>
+                                <select name="tahun_ajaran_id"
+                                        id="tahun_ajaran_id"
+                                        class="form-select"
+                                        required>
 
-                                <?php while ($row = mysqli_fetch_assoc($guru)): ?>
-
-                                    <option value="<?= (int) $row['id']; ?>"
-                                        <?= ($row['id'] == $data['guru_id']) ? 'selected' : ''; ?>>
-
-                                        <?= htmlspecialchars($row['nama']); ?>
-
+                                    <option value="">
+                                        -- Pilih Tahun Ajaran --
                                     </option>
 
-                                <?php endwhile; ?>
+                                    <?php while ($ta = mysqli_fetch_assoc($tahun)) { ?>
 
-                            </select>
+                                        <option value="<?= htmlspecialchars($ta['id']) ?>">
+                                            <?= htmlspecialchars($ta['nama']) ?>
+                                        </option>
 
-                        </div>
+                                    <?php } ?>
+
+                                </select>
+
+                            </div>
+
 
                         <!-- Tanggal Mulai -->
                         <div class="mb-3">

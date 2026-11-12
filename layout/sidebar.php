@@ -149,7 +149,7 @@ if ($_SESSION['role'] === "admin") {
             </li>
 
             
-              <li class="nav-item mb-2">
+            <li class="nav-item mb-2">
                 <a href="laporan.php"
                    class="nav-link <?= in_array($current_page, ['laporan.php']) ? 'active' : 'text-white' ?>">
                    Laporan

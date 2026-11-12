@@ -48,7 +48,7 @@ $tahun = mysqli_query($koneksi, "
 $kelas = mysqli_query($koneksi, "
     SELECT id, nama, tingkat, jurusan
     FROM t_kelas
-    WHERE status_aktif = 1 OR id = " . (int)$data['kelas_id'] . "
+    WHERE status_aktif = 1 = " . (int)$data['kelas_id'] . "
     ORDER BY nama ASC
 ");
 
@@ -96,8 +96,8 @@ function e($nilai) {
             <h2 class="mb-4">Edit Catatan Pelanggaran Siswa</h2>
 
             <div class="card">
-                <div class="card-header">
-                    Form Edit Pelanggaran
+               <div class="card-header bg-primary text-white">
+                   <h5> Form Catat Pelanggaran <h5>
                 </div>
 
                 <div class="card-body">
@@ -114,7 +114,7 @@ function e($nilai) {
                                 <label class="form-label">Siswa</label>
 
                                 <select name="siswa_id"
-                                        class="form-select" required>
+                                        class="form-control" required>
 
                                     <?php while ($s = mysqli_fetch_assoc($siswa)) { ?>
                                         <option value="<?php echo $s['id']; ?>"
@@ -146,24 +146,23 @@ function e($nilai) {
                                 </select>
                             </div>
 
-                            <div class="col-md-6 mb-3">
+                            <!-- ====================================
+                                KELAS
+                            ==================================== -->
+
+                              <div class="col-md-6 mb-3">
                                 <label class="form-label">Kelas</label>
 
-                                <select name="kelas_id"
-                                        class="form-select" required>
+                               <select name="kelas_id"
+                                        class="form-" required>
 
-                                    <?php while ($k = mysqli_fetch_assoc($kelas)) { ?>
-                                        <option value="<?php echo $k['id']; ?>"
-                                            <?php echo $data['kelas_id'] == $k['id'] ? 'selected' : ''; ?>>
+                                    <?php while ($ta = mysqli_fetch_assoc($kelas)) { ?>
+                                        <option value="<?php echo $ta['id']; ?>"
+                                            <?php echo $data['kelas_id'] == $ta['id'] ? 'selected' : ''; ?>>
 
-                                            <?php echo e(
-                                                $k['nama'].' - '.
-                                                $k['tingkat'].' - '.
-                                                $k['jurusan']
-                                            ); ?>
+                                            <?php echo e($ta['nama']); ?>
 
-                                        </option>
-                                    <?php } ?>
+                                <?php } ?>
 
                                 </select>
                             </div>
@@ -198,42 +197,12 @@ function e($nilai) {
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Guru Pelapor</label>
-
-                                <select name="guru_id"
-                                        class="form-select" required>
-
-                                    <?php while ($g = mysqli_fetch_assoc($guru)) { ?>
-                                        <option value="<?php echo $g['id']; ?>"
-                                            <?php echo $data['guru_id'] == $g['id'] ? 'selected' : ''; ?>>
-
-                                            <?php echo e($g['nama']); ?>
-
-                                        </option>
-                                    <?php } ?>
-
-                                </select>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
                                 <label class="form-label">Tanggal</label>
 
                                 <input type="date"
                                        name="tanggal"
                                        class="form-control"
                                        value="<?php echo e($data['tanggal']); ?>"
-                                       required>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Poin Pelanggaran</label>
-
-                                <input type="number"
-                                       name="poin"
-                                       id="poin"
-                                       class="form-control"
-                                       min="0"
-                                       value="<?php echo (int)$data['poin']; ?>"
                                        required>
                             </div>
 
@@ -271,25 +240,19 @@ function e($nilai) {
                                           rows="3"><?php echo e($data['keterangan']); ?></textarea>
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Tindakan</label>
+                        <!-- Tombol -->
+                        <div class="d-flex gap-2">
 
-                                <textarea name="tindakan"
-                                          class="form-control"
-                                          rows="3"><?php echo e($data['tindakan']); ?></textarea>
-                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                Update Catat Pelanggaran
+                            </button>
+
+                            <a href="kelola_wali_kelas.php"
+                               class="btn btn-secondary">
+                                Batal
+                            </a>
 
                         </div>
-
-                        <button type="submit" class="btn btn-primary">
-                            Simpan Perubahan
-                        </button>
-
-                        <a href="catat_pelanggaran.php"
-                           class="btn btn-secondary">
-                            Kembali
-                        </a>
-
                     </form>
 
                 </div>
