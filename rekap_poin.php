@@ -27,9 +27,7 @@ $kelas_sql = mysqli_real_escape_string($koneksi, $kelas_filter);
 // ============================================
 $query_kelas = mysqli_query(
     $koneksi,
-    "SELECT id, nama
-     FROM t_kelas
-     ORDER BY nama ASC"
+    "SELECT id, nama FROM t_kelas ORDER BY nama ASC"
 );
 
 if (!$query_kelas) {
@@ -145,26 +143,168 @@ $jumlah_siswa = count($data_rekap);
             color: #0d6efd;
         }
 
+        /* Bagian cetak disembunyikan pada tampilan biasa */
+        .kop-rekap,
+        .judul-cetak,
+        .tanda-tangan {
+            display: none;
+        }
+
+        /* =====================================
+           PENGATURAN CETAK
+        ===================================== */
         @media print {
-            .no-print,
-            .dt-search,
-            .dt-length,
-            .dt-paging,
-            .dt-info {
-                display: none !important;
-            }
 
-            main {
-                width: 100% !important;
-            }
-
-            .card {
-                border: 1px solid #ccc !important;
-                box-shadow: none !important;
+            @page {
+                size: landscape;
+                margin: 12mm;
             }
 
             body {
-                font-size: 12px;
+                background: white !important;
+                color: black !important;
+                font-size: 11px;
+            }
+
+            /* Sembunyikan sidebar, tombol, filter,
+               dan kontrol DataTables */
+            .no-print,
+            .sidebar,
+            .dt-length,
+            .dt-search,
+            .dt-info,
+            .dt-paging,
+            .dataTables_length,
+            .dataTables_filter,
+            .dataTables_info,
+            .dataTables_paginate {
+                display: none !important;
+            }
+
+            .container-fluid,
+            .row,
+            main {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* KOP SURAT TETAP MUNCUL */
+            .kop-rekap {
+                display: block !important;
+                text-align: center !important;
+                border-bottom: 3px solid black !important;
+                padding-bottom: 12px !important;
+                margin-bottom: 20px !important;
+            }
+
+            .kop-rekap h2 {
+                font-size: 21px !important;
+                font-weight: bold !important;
+                margin-bottom: 4px !important;
+            }
+
+            .kop-rekap h5 {
+                font-size: 15px !important;
+                font-weight: bold !important;
+            }
+
+            .kop-rekap p {
+                margin: 2px 0 !important;
+                font-size: 10px !important;
+            }
+
+            /* JUDUL CETAK TETAP MUNCUL */
+            .judul-cetak {
+                display: block !important;
+                text-align: center !important;
+                margin-bottom: 20px !important;
+            }
+
+            .judul-cetak h5 {
+                font-size: 15px !important;
+                font-weight: bold !important;
+            }
+
+            /* SEMBUNYIKAN TIGA KOTAK RINGKASAN */
+            .ringkasan-cetak {
+                display: none !important;
+            }
+
+            /* TABEL */
+            .card {
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            .card-body {
+                padding: 0 !important;
+            }
+
+            .table-responsive {
+                overflow: visible !important;
+            }
+
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                margin: 0 !important;
+            }
+
+            .table th,
+            .table td {
+                border: 1px solid black !important;
+                color: black !important;
+                background: white !important;
+                padding: 7px !important;
+                font-size: 10px !important;
+            }
+
+            .table thead th {
+                background: #dee2e6 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+
+            tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            /* Badge poin saat dicetak */
+            .badge {
+                background: white !important;
+                color: black !important;
+                border: none !important;
+                padding: 0 !important;
+                font-size: 10px !important;
+            }
+
+            /* TANDA TANGAN TETAP MUNCUL */
+            .tanda-tangan {
+                display: block !important;
+                width: 250px !important;
+                margin: 25px 0 0 auto !important;
+                text-align: center !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            .nama-kepala {
+                margin-top: 60px !important;
+                font-weight: bold !important;
+                text-decoration: underline !important;
+            }
+
+            /* Keterangan bawah tabel disembunyikan */
+            .keterangan-tabel {
+                display: none !important;
             }
         }
     </style>
@@ -183,34 +323,82 @@ $jumlah_siswa = count($data_rekap);
             <div class="container-fluid">
 
                 <!-- JUDUL HALAMAN -->
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4 no-print">
+
                     <div>
                         <h2>Rekap Poin Pelanggaran Siswa</h2>
+
                         <p class="text-muted mb-0">
                             Ringkasan jumlah pelanggaran dan poin setiap siswa.
                         </p>
                     </div>
 
-                    <div class="d-flex gap-2 no-print">
+                    <div class="d-flex gap-2">
+
                         <a href="dashboard.php" class="btn btn-secondary">
                             Kembali ke Dashboard
                         </a>
 
                         <button type="button"
-                                onclick="window.print()"
+                                onclick="cetakRekap()"
                                 class="btn btn-success">
                             Cetak Rekap
                         </button>
+
                     </div>
                 </div>
 
-                <!-- RINGKASAN -->
-                <div class="row g-3 mb-4">
+                <!-- KOP SURAT -->
+                <div class="kop-rekap text-center mb-4">
+
+                    <h2 class="fw-bold mb-1">
+                        SMK MUHAMMADIYAH
+                    </h2>
+
+                    <h5 class="fw-bold mb-2">
+                        LAPORAN DATA KESISWAAN
+                    </h5>
+
+                    <p class="mb-1 small">
+                        Jl. Rumah Sakit No. 29, Empangsari, Kec. Tawang,
+                        Kota Tasikmalaya, Jawa Barat 46113
+                    </p>
+
+                    <p class="mb-1 small">
+                        Telepon: (0265) 327380
+                        | WA: 085189303384 / 085189303385
+                    </p>
+
+                    <p class="mb-2 small">
+                        Email: info@smkmtsm.sch.id
+                    </p>
+
+                </div>
+
+                <!-- JUDUL CETAK -->
+                <div class="judul-cetak text-center mb-4">
+
+                    <h5 class="fw-bold text-decoration-underline">
+                        LAPORAN REKAP POIN PELANGGARAN SISWA
+                    </h5>
+
+                    <p>
+                        Tanggal Cetak:
+                        <?= date('d-m-Y'); ?>
+                    </p>
+
+                </div>
+
+                <!-- RINGKASAN: HANYA TAMPIL DI HALAMAN BIASA -->
+                <div class="row g-3 mb-4 ringkasan-cetak">
 
                     <div class="col-md-4">
                         <div class="card shadow-sm h-100">
                             <div class="card-body">
-                                <p class="text-muted mb-1">Jumlah Siswa</p>
+                                <p class="text-muted mb-1">
+                                    Jumlah Siswa
+                                </p>
+
                                 <div class="angka">
                                     <?= $jumlah_siswa; ?>
                                 </div>
@@ -221,7 +409,10 @@ $jumlah_siswa = count($data_rekap);
                     <div class="col-md-4">
                         <div class="card shadow-sm h-100">
                             <div class="card-body">
-                                <p class="text-muted mb-1">Total Poin</p>
+                                <p class="text-muted mb-1">
+                                    Total Poin
+                                </p>
+
                                 <div class="angka">
                                     <?= $total_poin_semua; ?>
                                 </div>
@@ -235,6 +426,7 @@ $jumlah_siswa = count($data_rekap);
                                 <p class="text-muted mb-1">
                                     Jumlah Catatan Pelanggaran
                                 </p>
+
                                 <div class="angka">
                                     <?= $total_catatan; ?>
                                 </div>
@@ -248,10 +440,13 @@ $jumlah_siswa = count($data_rekap);
                 <div class="card shadow-sm mb-4 no-print">
 
                     <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Pencarian dan Filter Siswa</h5>
+                        <h5 class="mb-0">
+                            Pencarian dan Filter Siswa
+                        </h5>
                     </div>
 
                     <div class="card-body">
+
                         <form method="GET" action="rekap_poin.php">
 
                             <div class="row g-3">
@@ -278,13 +473,17 @@ $jumlah_siswa = count($data_rekap);
                                     <select name="kelas" id="kelas"
                                             class="form-select">
 
-                                        <option value="">Semua Kelas</option>
+                                        <option value="">
+                                            Semua Kelas
+                                        </option>
 
                                         <?php foreach ($data_kelas as $kelas) { ?>
                                             <option
                                                 value="<?= (int) $kelas['id']; ?>"
                                                 <?= $kelas_filter == $kelas['id'] ? 'selected' : ''; ?>>
+
                                                 <?= htmlspecialchars($kelas['nama']); ?>
+
                                             </option>
                                         <?php } ?>
 
@@ -292,6 +491,7 @@ $jumlah_siswa = count($data_rekap);
                                 </div>
 
                                 <div class="col-md-3 d-flex align-items-end gap-2">
+
                                     <button type="submit" class="btn btn-primary">
                                         Cari
                                     </button>
@@ -299,20 +499,22 @@ $jumlah_siswa = count($data_rekap);
                                     <a href="rekap_poin.php" class="btn btn-secondary">
                                         Reset
                                     </a>
+
                                 </div>
 
                             </div>
-
                         </form>
+
                     </div>
                 </div>
 
                 <!-- TABEL REKAP -->
                 <div class="card shadow-sm">
 
-                    <!-- HEADER DIUBAH MENJADI HITAM -->
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0">Data Rekap Poin Siswa</h5>
+                    <div class="card-header bg-dark text-white no-print">
+                        <h5 class="mb-0">
+                            Data Rekap Poin Siswa
+                        </h5>
                     </div>
 
                     <div class="card-body">
@@ -336,9 +538,7 @@ $jumlah_siswa = count($data_rekap);
                                 <tbody>
 
                                     <?php foreach ($data_rekap as $data) { ?>
-
                                         <tr>
-                                            <!-- Nomor otomatis oleh DataTables -->
                                             <td></td>
 
                                             <td>
@@ -362,9 +562,7 @@ $jumlah_siswa = count($data_rekap);
                                                     <?= (int) $data['total_poin']; ?> poin
                                                 </span>
                                             </td>
-
                                         </tr>
-
                                     <?php } ?>
 
                                 </tbody>
@@ -373,12 +571,36 @@ $jumlah_siswa = count($data_rekap);
 
                         </div>
 
-                        <p class="text-muted mb-0 mt-3">
+                        <p class="text-muted mb-0 mt-3 keterangan-tabel">
                             Total poin dihitung berdasarkan catatan pada
                             tabel t_pelanggaran_siswa.
                         </p>
 
                     </div>
+                </div>
+
+                <!-- TANDA TANGAN -->
+                <div class="tanda-tangan text-center ms-auto mt-5"
+                     style="max-width: 280px;">
+
+                    <p>
+                        Tasikmalaya, <?= date('d-m-Y'); ?>
+                    </p>
+
+                    <p>Mengetahui,</p>
+
+                    <p class="fw-bold">
+                        Kepala SMK Muhammadiyah
+                    </p>
+
+                    <p class="nama-kepala">
+                        ( ................................ )
+                    </p>
+
+                    <p>
+                        NIP. ................................
+                    </p>
+
                 </div>
 
             </div>
@@ -398,11 +620,15 @@ $jumlah_siswa = count($data_rekap);
 <script src="https://cdn.datatables.net/2.3.4/js/dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/2.3.4/js/dataTables.bootstrap5.min.js"></script>
 
-<!-- INISIALISASI DATATABLES -->
 <script>
+// ============================================
+// DATATABLES
+// ============================================
+let tabelRekap;
+
 $(document).ready(function () {
 
-    $('#tabelRekap').DataTable({
+    tabelRekap = $('#tabelRekap').DataTable({
 
         pageLength: 10,
 
@@ -414,10 +640,8 @@ $(document).ready(function () {
 
         paging: true,
 
-        // Total poin tertinggi ditampilkan lebih dahulu
         order: [[5, 'desc'], [2, 'asc']],
 
-        // Kolom No tidak perlu diurutkan atau dicari
         columnDefs: [
             {
                 orderable: false,
@@ -426,11 +650,9 @@ $(document).ready(function () {
             }
         ],
 
-        // Nomor mengikuti hasil pencarian dan halaman aktif
         drawCallback: function () {
 
             var api = this.api();
-
             var nomorAwal = api.page.info().start;
 
             api.column(0, {
@@ -444,21 +666,14 @@ $(document).ready(function () {
 
         },
 
-        // Bahasa Indonesia
         language: {
 
             search: "Cari di tabel:",
-
             lengthMenu: "Tampilkan _MENU_ data",
-
             info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-
             infoEmpty: "Tidak ada data rekap",
-
             infoFiltered: "(difilter dari _MAX_ total data)",
-
             zeroRecords: "Data siswa tidak ditemukan",
-
             emptyTable: "Belum ada data rekap poin siswa",
 
             paginate: {
@@ -473,6 +688,32 @@ $(document).ready(function () {
     });
 
 });
+
+// ============================================
+// CETAK SEMUA DATA REKAP
+// ============================================
+function cetakRekap() {
+
+    let panjangHalaman = tabelRekap.page.len();
+
+    // Tampilkan seluruh data saat dicetak
+    tabelRekap.page.len(-1).draw();
+
+    setTimeout(function () {
+
+        window.onafterprint = function () {
+
+            tabelRekap.page.len(panjangHalaman).draw();
+
+            window.onafterprint = null;
+
+        };
+
+        window.print();
+
+    }, 300);
+
+}
 </script>
 
 </body>

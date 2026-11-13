@@ -1,278 +1,347 @@
 <?php
+
 include 'includes/cek_session.php';
 include 'config/koneksi.php';
 
-if (!isset($_GET['id']) || !ctype_digit($_GET['id'])) {
-    $_SESSION['pesan_error'] = "ID pelanggaran tidak valid.";
+// ====================================
+// CEK ID CATATAN
+// ====================================
+
+if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header("Location: catat_pelanggaran.php");
     exit;
 }
 
 $id = (int) $_GET['id'];
 
-// Ambil data pelanggaran
-$stmt = mysqli_prepare(
-    $koneksi,
-    "SELECT * FROM t_pelanggaran_siswa WHERE id = ?"
-);
+// ====================================
+// AMBIL DATA CATATAN PELANGGARAN
+// ====================================
+
+$stmt = mysqli_prepare($koneksi, "
+    SELECT
+        ps.*,
+        s.nis,
+        s.nama AS nama_siswa,
+        k.nama AS nama_kelas,
+        k.tingkat,
+        k.jurusan,
+        ta.nama AS tahun_ajaran,
+        p.nama AS nama_pelanggaran
+    FROM t_pelanggaran_siswa ps
+    LEFT JOIN t_siswa s
+        ON ps.siswa_id = s.id
+    LEFT JOIN t_kelas k
+        ON ps.kelas_id = k.id
+    LEFT JOIN t_tahun_ajaran ta
+        ON ps.tahun_ajaran_id = ta.id
+    LEFT JOIN t_pelanggaran p
+        ON ps.pelanggaran_id = p.id
+    WHERE ps.id = ?
+    LIMIT 1
+");
+
 mysqli_stmt_bind_param($stmt, "i", $id);
 mysqli_stmt_execute($stmt);
 
-$hasil = mysqli_stmt_get_result($stmt);
-$data = mysqli_fetch_assoc($hasil);
-mysqli_stmt_close($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$data = mysqli_fetch_assoc($result);
 
 if (!$data) {
-    $_SESSION['pesan_error'] = "Data pelanggaran tidak ditemukan.";
+    $_SESSION['pesan_error'] = "Data catatan pelanggaran tidak ditemukan.";
     header("Location: catat_pelanggaran.php");
     exit;
 }
 
-// Daftar siswa
-$siswa = mysqli_query($koneksi, "
-    SELECT id, nis, nama
-    FROM t_siswa
-    WHERE status_aktif = 1 OR id = " . (int)$data['siswa_id'] . "
-    ORDER BY nama ASC
-");
+// ====================================
+// CEK STATUS SELESAI
+// ====================================
 
-// Daftar tahun ajaran
-$tahun = mysqli_query($koneksi, "
-    SELECT id, nama
-    FROM t_tahun_ajaran
-    WHERE status_aktif = 1 OR id = " . (int)$data['tahun_ajaran_id'] . "
-    ORDER BY id DESC
-");
-
-// Daftar kelas
-$kelas = mysqli_query($koneksi, "
-    SELECT id, nama, tingkat, jurusan
-    FROM t_kelas
-    WHERE status_aktif = 1 = " . (int)$data['kelas_id'] . "
-    ORDER BY nama ASC
-");
-
-// Daftar pelanggaran
-$pelanggaran = mysqli_query($koneksi, "
-    SELECT id, nama, poin, pelanggaran_kategori_id
-    FROM t_pelanggaran
-    WHERE status_aktif = 1 OR id = " . (int)$data['pelanggaran_id'] . "
-    ORDER BY nama ASC
-");
-
-// Daftar guru
-$guru = mysqli_query($koneksi, "
-    SELECT id, nama
-    FROM t_guru
-    WHERE status_aktif = 1 OR id = " . (int)$data['guru_id'] . "
-    ORDER BY nama ASC
-");
-
-function e($nilai) {
-    return htmlspecialchars((string)$nilai, ENT_QUOTES, 'UTF-8');
+if ($data['status'] === 'Selesai') {
+    $_SESSION['pesan_error'] = "Catatan yang sudah selesai tidak dapat diedit.";
+    header("Location: catat_pelanggaran.php");
+    exit;
 }
+
+// ====================================
+// DAFTAR JENIS PELANGGARAN
+// ====================================
+
+$pelanggaran = mysqli_query(
+    $koneksi,
+    "SELECT id, nama, poin
+     FROM t_pelanggaran
+     WHERE status_aktif = 1
+        OR id = " . (int) $data['pelanggaran_id'] . "
+     ORDER BY nama ASC"
+);
+
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Edit Catatan Pelanggaran</title>
+
+    <title>Edit Catat Pelanggaran</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
           rel="stylesheet">
+
 </head>
 
 <body>
 
 <div class="container-fluid">
+
     <div class="row">
 
         <?php include 'layout/sidebar.php'; ?>
 
         <main class="col-md-9 col-lg-10 p-4">
 
-            <h2 class="mb-4">Edit Catatan Pelanggaran Siswa</h2>
+            <h2 class="mb-4">Edit Catat Pelanggaran</h2>
+
+            <!-- PESAN ERROR -->
+
+            <?php if (isset($_SESSION['pesan_error'])) { ?>
+
+                <div class="alert alert-danger">
+
+                    <?php
+                    echo htmlspecialchars($_SESSION['pesan_error']);
+                    unset($_SESSION['pesan_error']);
+                    ?>
+
+                </div>
+
+            <?php } ?>
+
+            <!-- FORM EDIT -->
 
             <div class="card">
-               <div class="card-header bg-primary text-white">
-                   <h5> Form Catat Pelanggaran <h5>
+
+                <div class="card-header bg-primary text-light">
+                    Form Edit Catat Pelanggaran
                 </div>
 
                 <div class="card-body">
 
-                    <form action="proses_edit_catat_pelanggaran.php"
-                          method="POST">
-
-                        <input type="hidden" name="id"
-                               value="<?php echo (int)$data['id']; ?>">
+                    <form action="proses_edit_catat_pelanggaran.php?id=<?php echo $id; ?>"
+                          method="POST"
+                          id="formEditPelanggaran">
 
                         <div class="row">
 
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Siswa</label>
-
-                                <select name="siswa_id"
-                                        class="form-control" required>
-
-                                    <?php while ($s = mysqli_fetch_assoc($siswa)) { ?>
-                                        <option value="<?php echo $s['id']; ?>"
-                                            <?php echo $data['siswa_id'] == $s['id'] ? 'selected' : ''; ?>>
-
-                                            <?php echo e($s['nis'].' - '.$s['nama']); ?>
-
-                                        </option>
-                                    <?php } ?>
-
-                                </select>
-                            </div>
+                            <!-- KELAS -->
 
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Tahun Ajaran</label>
 
-                                <select name="tahun_ajaran_id"
-                                        class="form-select" required>
+                                <label class="form-label">
+                                    Kelas
+                                </label>
 
-                                    <?php while ($ta = mysqli_fetch_assoc($tahun)) { ?>
-                                        <option value="<?php echo $ta['id']; ?>"
-                                            <?php echo $data['tahun_ajaran_id'] == $ta['id'] ? 'selected' : ''; ?>>
+                                <input type="text"
+                                       class="form-control"
+                                       value="<?php
+                                       echo htmlspecialchars(
+                                           ($data['nama_kelas'] ?? '-') . ' - ' .
+                                           ($data['tingkat'] ?? '-') . ' - ' .
+                                           ($data['jurusan'] ?? '-')
+                                       );
+                                       ?>"
+                                       readonly>
 
-                                            <?php echo e($ta['nama']); ?>
-
-                                        </option>
-                                    <?php } ?>
-
-                                </select>
                             </div>
 
-                            <!-- ====================================
-                                KELAS
-                            ==================================== -->
-
-                              <div class="col-md-6 mb-3">
-                                <label class="form-label">Kelas</label>
-
-                               <select name="kelas_id"
-                                        class="form-" required>
-
-                                    <?php while ($ta = mysqli_fetch_assoc($kelas)) { ?>
-                                        <option value="<?php echo $ta['id']; ?>"
-                                            <?php echo $data['kelas_id'] == $ta['id'] ? 'selected' : ''; ?>>
-
-                                            <?php echo e($ta['nama']); ?>
-
-                                <?php } ?>
-
-                                </select>
-                            </div>
+                            <!-- NAMA SISWA -->
 
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Jenis Pelanggaran</label>
+
+                                <label class="form-label">
+                                    Nama Siswa
+                                </label>
+
+                                <input type="text"
+                                       class="form-control"
+                                       value="<?php
+                                       echo htmlspecialchars(
+                                           ($data['nis'] ?? '-') . ' - ' .
+                                           ($data['nama_siswa'] ?? '-')
+                                       );
+                                       ?>"
+                                       readonly>
+
+                            </div>
+
+                            <!-- TAHUN AJARAN -->
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label">
+                                    Tahun Ajaran
+                                </label>
+
+                                <input type="text"
+                                       class="form-control"
+                                       value="<?php echo htmlspecialchars($data['tahun_ajaran'] ?? '-'); ?>"
+                                       readonly>
+
+                            </div>
+
+                            <!-- JENIS PELANGGARAN -->
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label">
+                                    Jenis Pelanggaran
+                                </label>
 
                                 <select name="pelanggaran_id"
                                         id="pelanggaran"
-                                        class="form-select" required>
+                                        class="form-select"
+                                        required>
+
+                                    <option value="">
+                                        -- Pilih Pelanggaran --
+                                    </option>
 
                                     <?php while ($p = mysqli_fetch_assoc($pelanggaran)) { ?>
+
                                         <option
                                             value="<?php echo $p['id']; ?>"
                                             data-poin="<?php echo $p['poin']; ?>"
-                                            data-kategori="<?php echo $p['pelanggaran_kategori_id']; ?>"
-                                            <?php echo $data['pelanggaran_id'] == $p['id'] ? 'selected' : ''; ?>>
+                                            <?php echo ((int) $data['pelanggaran_id'] === (int) $p['id']) ? 'selected' : ''; ?>>
 
-                                            <?php echo e(
-                                                $p['nama'].' ('.$p['poin'].' poin)'
-                                            ); ?>
+                                            <?php
+                                            echo htmlspecialchars($p['nama']) .
+                                                ' - ' . $p['poin'] . ' poin';
+                                            ?>
 
                                         </option>
+
                                     <?php } ?>
 
                                 </select>
 
-                                <input type="hidden"
-                                       name="pelanggaran_kategori_id"
-                                       id="kategori"
-                                       value="<?php echo (int)$data['pelanggaran_kategori_id']; ?>">
                             </div>
 
+                            
+                            <!-- TANGGAL -->
+
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Tanggal</label>
+
+                                <label class="form-label">
+                                    Tanggal
+                                </label>
 
                                 <input type="date"
                                        name="tanggal"
                                        class="form-control"
-                                       value="<?php echo e($data['tanggal']); ?>"
+                                       value="<?php echo htmlspecialchars($data['tanggal']); ?>"
                                        required>
+
                             </div>
 
+                            <!-- STATUS -->
+
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Status</label>
+
+                                <label class="form-label">
+                                    Status
+                                </label>
 
                                 <select name="status"
-                                        class="form-select" required>
+                                        class="form-select"
+                                        required>
 
-                                    <?php
-                                    $statusList = [
-                                        'Ditindaklanjuti',
-                                        'Proses',
-                                        'Selesai'
-                                    ];
+                                    <option value="Ditindaklanjuti"
+                                        <?php echo $data['status'] === 'Ditindaklanjuti' ? 'selected' : ''; ?>>
+                                        Ditindaklanjuti
+                                    </option>
 
-                                    foreach ($statusList as $st) {
-                                    ?>
-                                        <option value="<?php echo e($st); ?>"
-                                            <?php echo $data['status'] == $st ? 'selected' : ''; ?>>
+                                    <option value="Proses"
+                                        <?php echo $data['status'] === 'Proses' ? 'selected' : ''; ?>>
+                                        Proses
+                                    </option>
 
-                                            <?php echo e($st); ?>
-
-                                        </option>
-                                    <?php } ?>
+                                    <option value="Selesai"
+                                        <?php echo $data['status'] === 'Selesai' ? 'selected' : ''; ?>>
+                                        Selesai
+                                    </option>
 
                                 </select>
+
                             </div>
 
+                            <!-- KETERANGAN -->
+
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Keterangan</label>
+
+                                <label class="form-label">
+                                    Keterangan
+                                </label>
 
                                 <textarea name="keterangan"
                                           class="form-control"
-                                          rows="3"><?php echo e($data['keterangan']); ?></textarea>
+                                          rows="3"><?php echo htmlspecialchars($data['keterangan'] ?? ''); ?></textarea>
+
                             </div>
 
-                        <!-- Tombol -->
-                        <div class="d-flex gap-2">
-
-                            <button type="submit" class="btn btn-primary">
-                                Update Catat Pelanggaran
-                            </button>
-
-                            <a href="kelola_wali_kelas.php"
-                               class="btn btn-secondary">
-                                Batal
-                            </a>
-
                         </div>
+
+                        <!-- TOMBOL -->
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            Simpan Perubahan
+
+                        </button>
+
+                        <a href="catat_pelanggaran.php"
+                           class="btn btn-secondary">
+
+                            Kembali
+
+                        </a>
+
                     </form>
 
                 </div>
+
             </div>
 
         </main>
+
     </div>
+
 </div>
 
 <script>
-const pilihanPelanggaran = document.getElementById('pelanggaran');
-const inputPoin = document.getElementById('poin');
-const inputKategori = document.getElementById('kategori');
 
-pilihanPelanggaran.addEventListener('change', function () {
-    const opsi = this.options[this.selectedIndex];
+// ====================================
+// POIN OTOMATIS
+// ====================================
 
-    inputPoin.value = opsi.dataset.poin || '';
-    inputKategori.value = opsi.dataset.kategori || '';
+const pelanggaran = document.getElementById('pelanggaran');
+const poin = document.getElementById('poin');
+
+pelanggaran.addEventListener('change', function () {
+
+    const pilihan = this.options[this.selectedIndex];
+
+    if (pilihan.value !== '') {
+        poin.value = pilihan.dataset.poin;
+    } else {
+        poin.value = '';
+    }
+
 });
+
 </script>
 
 </body>

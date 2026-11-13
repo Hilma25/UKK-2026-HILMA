@@ -88,7 +88,7 @@ if (!$data) {
             <div class="card shadow-sm">
 
                 <div class="card-header bg-primary text-white">
-                    Form Edit Guru
+                    <h5 class="mb-0"> Form Edit Guru</h5>
                 </div>
 
                 <div class="card-body">

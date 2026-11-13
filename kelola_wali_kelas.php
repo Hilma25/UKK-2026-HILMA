@@ -93,10 +93,9 @@ if (!$hasil) {
                 <!-- CARD DAFTAR WALI KELAS -->
                 <div class="card shadow-sm">
 
-                    <!-- HEADER CARD -->
-                    <div class="card-header">
-                        Daftar Wali Kelas
-                    </div>
+                    <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Daftar Wali Kelas</h5>
+                </div>
 
                     <!-- BODY CARD -->
                     <div class="card-body">
