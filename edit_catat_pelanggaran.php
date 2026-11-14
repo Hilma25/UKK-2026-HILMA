@@ -124,8 +124,8 @@ $pelanggaran = mysqli_query(
 
             <div class="card">
 
-                <div class="card-header bg-primary text-light">
-                    Form Edit Catat Pelanggaran
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Form Edit Catat Pelanggaran</h5>
                 </div>
 
                 <div class="card-body">

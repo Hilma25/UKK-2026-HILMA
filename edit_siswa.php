@@ -78,9 +78,8 @@ if (!$data) {
 
             <!-- Form Edit Siswa -->
             <div class="card shadow-sm">
-
                 <div class="card-header bg-primary text-white">
-                    Form Edit Siswa
+                    <h5 class="mb-0">Form Edit Siswa</h5>
                 </div>
 
                 <div class="card-body">

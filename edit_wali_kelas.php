@@ -110,7 +110,7 @@ $guru = mysqli_query(
 
                     <!-- HEADER CARD -->
                     <div class="card-header bg-primary text-white">
-                    Form Edit Wali Kelas
+                    <h5 class="mb-0">Form Edit Wali Kelas</h5>
                 </div>
 
                     <!-- BODY CARD -->

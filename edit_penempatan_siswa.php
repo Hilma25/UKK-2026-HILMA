@@ -170,7 +170,7 @@ $kelas = mysqli_stmt_get_result($stmt_kelas);
             <div class="card shadow-sm">
 
                 <div class="card-header bg-primary text-white">
-                    Form Edit Penempatan Siswa
+                    <h5 class="mb-0">Form Edit Penempatan Siswa</h5>
                 </div>
 
                 <div class="card-body">

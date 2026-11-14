@@ -80,7 +80,7 @@ if (!$data) {
             <div class="card shadow-sm">
 
                 <div class="card-header bg-primary text-white">
-                    Form Edit Kelas
+                    <h5 class="mb-0">Form Edit Kelas</h5>
                 </div>
 
                 <div class="card-body">

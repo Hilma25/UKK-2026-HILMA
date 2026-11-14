@@ -108,7 +108,7 @@ $kategori = mysqli_stmt_get_result($stmt_kategori);
             <div class="card shadow-sm">
 
                 <div class="card-header bg-primary text-white">
-                    Form Edit Jenis Pelanggaran
+                    <h5 class="mb-0">Form Jenis Pelanggaran</h5>
                 </div>
 
                 <div class="card-body">

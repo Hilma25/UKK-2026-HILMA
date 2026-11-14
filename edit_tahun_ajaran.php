@@ -81,7 +81,7 @@ if (!$data) {
             <div class="card shadow-sm">
 
                 <div class="card-header bg-primary text-white">
-                    Form Edit Tahun Ajaran
+                    <h5 class="mb-0">Form Edit Tahun Ajaran</h5>
                 </div>
 
                 <div class="card-body">

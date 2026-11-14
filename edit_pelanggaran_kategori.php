@@ -86,9 +86,8 @@ if (!$data) {
 
             <!-- Form Edit Kategori Pelanggaran -->
             <div class="card shadow-sm">
-
                 <div class="card-header bg-primary text-white">
-                    Form Edit Kategori Pelanggaran
+                    <h5 class="mb-0">Form Edit Kategori Pelanggaran</h5>
                 </div>
 
                 <div class="card-body">
