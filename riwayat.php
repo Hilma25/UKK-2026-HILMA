@@ -2,11 +2,15 @@
 <?php
 // riwayat.php
 
-// 1. KONEKSI DAN SESSION
+// ==========================================
+// 1. SESSION DAN KONEKSI
+// ==========================================
 include 'includes/cek_session.php';
 include 'config/koneksi.php';
 
+// ==========================================
 // 2. MENGAMBIL INPUT PENCARIAN DAN FILTER
+// ==========================================
 $cari = isset($_GET['cari'])
     ? mysqli_real_escape_string($koneksi, trim($_GET['cari']))
     : '';
@@ -15,39 +19,46 @@ $status = isset($_GET['status'])
     ? mysqli_real_escape_string($koneksi, trim($_GET['status']))
     : '';
 
-// 3. QUERY DATA RIWAYAT PELANGGARAN
-$sql = "SELECT
-            ps.*,
-            s.nama AS nama_siswa,
-            k.nama AS nama_kelas,
-            p.nama AS nama_pelanggaran,
-            g.nama AS nama_guru
-        FROM t_pelanggaran_siswa ps
-        LEFT JOIN t_siswa s ON ps.siswa_id = s.id
-        LEFT JOIN t_kelas k ON ps.kelas_id = k.id
-        LEFT JOIN t_pelanggaran p ON ps.pelanggaran_id = p.id
-        LEFT JOIN t_guru g ON ps.guru_id = g.id
-        WHERE 1=1";
+// ==========================================
+// 3. MENGAMBIL ID USER LOGIN
+// ==========================================
+$id_user = (int) ($_SESSION['id_user'] ?? $_SESSION['id'] ?? 0);
 
-// 4. PENCARIAN DATA
+// ==========================================
+// 4. QUERY DATA RIWAYAT
+// ==========================================
+$sql = "SELECT p.*
+        FROM t_pelanggaran_siswa p
+        INNER JOIN t_guru g ON p.guru_id = g.id
+        WHERE g.user_id = $id_user";
+
+// ==========================================
+// 5. PENCARIAN
+// ==========================================
 if ($cari != '') {
     $sql .= " AND (
-        s.nama LIKE '%$cari%'
-        OR p.nama LIKE '%$cari%'
-        OR k.nama LIKE '%$cari%'
-        OR g.nama LIKE '%$cari%'
+        p.nama_siswa LIKE '%$cari%'
+        OR p.nama_pelanggaran LIKE '%$cari%'
+        OR p.nama_kelas LIKE '%$cari%'
+        OR p.nama_guru LIKE '%$cari%'
     )";
 }
 
-// 5. FILTER STATUS
+// ==========================================
+// 6. FILTER STATUS
+// ==========================================
 if ($status != '') {
-    $sql .= " AND ps.status = '$status'";
+    $sql .= " AND p.status = '$status'";
 }
 
-// 6. URUTKAN DATA TERBARU
-$sql .= " ORDER BY ps.tanggal DESC, ps.id DESC";
+// ==========================================
+// 7. URUTKAN DATA TERBARU
+// ==========================================
+$sql .= " ORDER BY p.tanggal DESC, p.id DESC";
 
-// 7. MENJALANKAN QUERY
+// ==========================================
+// 8. MENJALANKAN QUERY
+// ==========================================
 $query = mysqli_query($koneksi, $sql);
 
 if (!$query) {
@@ -60,7 +71,6 @@ $jumlah = mysqli_num_rows($query);
 
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -83,7 +93,7 @@ $jumlah = mysqli_num_rows($query);
 
         <?php include 'layout/sidebar.php'; ?>
 
-        <!-- KONTEN UTAMA -->
+        <!-- KONTEN -->
         <main class="col-md-9 col-lg-10 p-4">
 
             <!-- JUDUL HALAMAN -->
@@ -100,7 +110,7 @@ $jumlah = mysqli_num_rows($query);
                 </a>
             </div>
 
-            <!-- RINGKASAN JUMLAH DATA -->
+            <!-- JUMLAH DATA -->
             <div class="card shadow-sm mb-4">
                 <div class="card-body">
                     <h6 class="text-muted">Jumlah Riwayat Ditampilkan</h6>
@@ -147,13 +157,18 @@ $jumlah = mysqli_num_rows($query);
 
                                     <option value="">Semua Status</option>
 
-                                    <option value="belum"
-                                        <?= $status == 'belum' ? 'selected' : ''; ?>>
-                                        Belum Ditindak
+                                    <option value="Ditindaklanjuti"
+                                        <?= $status == 'Ditindaklanjuti' ? 'selected' : ''; ?>>
+                                        Ditindaklanjuti
                                     </option>
 
-                                    <option value="selesai"
-                                        <?= $status == 'selesai' ? 'selected' : ''; ?>>
+                                    <option value="Proses"
+                                        <?= $status == 'Proses' ? 'selected' : ''; ?>>
+                                        Proses
+                                    </option>
+
+                                    <option value="Selesai"
+                                        <?= $status == 'Selesai' ? 'selected' : ''; ?>>
                                         Selesai
                                     </option>
 
@@ -179,7 +194,7 @@ $jumlah = mysqli_num_rows($query);
                 </div>
             </div>
 
-            <!-- TABEL RIWAYAT PELANGGARAN -->
+            <!-- TABEL RIWAYAT -->
             <div class="card shadow-sm">
 
                 <div class="card-header bg-dark text-white">
@@ -191,7 +206,7 @@ $jumlah = mysqli_num_rows($query);
                     <div class="table-responsive">
 
                         <table id="tabelRiwayat"
-                               class="table table-striped table-bordered table-hover align-middle w-100">
+                               class="table table-striped table-bordered table-hover align-middle">
 
                             <thead class="table-dark">
                                 <tr>
@@ -210,66 +225,81 @@ $jumlah = mysqli_num_rows($query);
 
                             <tbody>
 
-                                <?php while ($data = mysqli_fetch_assoc($query)) { ?>
+                                <?php if ($jumlah > 0) { ?>
+
+                                    <?php while ($data = mysqli_fetch_assoc($query)) { ?>
+
+                                        <tr>
+
+                                            <td></td>
+
+                                            <td>
+                                                <?= htmlspecialchars($data['tanggal'] ?? '-'); ?>
+                                            </td>
+
+                                            <td>
+                                                <?= htmlspecialchars($data['nama_siswa'] ?? '-'); ?>
+                                            </td>
+
+                                            <td>
+                                                <?= htmlspecialchars($data['nama_kelas'] ?? '-'); ?>
+                                            </td>
+
+                                            <td>
+                                                <?= htmlspecialchars($data['nama_pelanggaran'] ?? '-'); ?>
+                                            </td>
+
+                                            <td class="text-center">
+                                                <span class="badge bg-warning text-dark">
+                                                    <?= htmlspecialchars((string) ($data['poin'] ?? 0)); ?>
+                                                </span>
+                                            </td>
+
+                                            <td>
+                                                <?= htmlspecialchars($data['nama_guru'] ?? '-'); ?>
+                                            </td>
+
+                                            <td>
+                                                <?= htmlspecialchars($data['keterangan'] ?? '-'); ?>
+                                            </td>
+
+                                            <td>
+                                                <?= htmlspecialchars($data['tindakan'] ?? '-'); ?>
+                                            </td>
+
+                                            <td>
+                                                <?php
+                                                $status_data = strtolower(
+                                                    trim($data['status'] ?? '')
+                                                );
+
+                                                if ($status_data == 'selesai') {
+                                                    echo '<span class="badge bg-success">Selesai</span>';
+
+                                                } elseif ($status_data == 'proses') {
+                                                    echo '<span class="badge bg-warning text-dark">Proses</span>';
+
+                                                } elseif ($status_data == 'ditindaklanjuti') {
+                                                    echo '<span class="badge bg-info text-dark">Ditindaklanjuti</span>';
+
+                                                } else {
+                                                    echo '<span class="badge bg-secondary">'
+                                                        . htmlspecialchars($data['status'] ?? '-')
+                                                        . '</span>';
+                                                }
+                                                ?>
+                                            </td>
+
+                                        </tr>
+
+                                    <?php } ?>
+
+                                <?php } else { ?>
 
                                     <tr>
-                                        <td></td>
-
-                                        <td>
-                                            <?= htmlspecialchars($data['tanggal'] ?? '-'); ?>
+                                        <td colspan="10" class="text-center">
+                                            Belum ada riwayat pelanggaran
                                         </td>
-
-                                        <td>
-                                            <?= htmlspecialchars($data['nama_siswa'] ?? '-'); ?>
-                                        </td>
-
-                                        <td>
-                                            <?= htmlspecialchars($data['nama_kelas'] ?? '-'); ?>
-                                        </td>
-
-                                        <td>
-                                            <?= htmlspecialchars($data['nama_pelanggaran'] ?? '-'); ?>
-                                        </td>
-
-                                        <td class="text-center">
-                                            <span class="badge bg-warning text-dark">
-                                                <?= htmlspecialchars((string) ($data['poin'] ?? 0)); ?>
-                                            </span>
-                                        </td>
-
-                                        <td>
-                                            <?= htmlspecialchars($data['nama_guru'] ?? '-'); ?>
-                                        </td>
-
-                                        <td>
-                                            <?= htmlspecialchars($data['keterangan'] ?? '-'); ?>
-                                        </td>
-
-                                        <td>
-                                            <?= htmlspecialchars($data['tindakan'] ?? '-'); ?>
-                                        </td>
-
-                                        <td>
-                                            <?php
-                                            $status_data = strtolower(
-                                                trim($data['status'] ?? '')
-                                            );
-
-                                            if ($status_data == 'selesai') {
-                                                echo '<span class="badge bg-success">Selesai</span>';
-                                            } elseif (
-                                                $status_data == 'belum' ||
-                                                $status_data == 'belum ditindak'
-                                            ) {
-                                                echo '<span class="badge bg-danger">Belum Ditindak</span>';
-                                            } else {
-                                                echo '<span class="badge bg-secondary">'
-                                                    . htmlspecialchars($data['status'] ?? '-')
-                                                    . '</span>';
-                                            }
-                                            ?>
-                                        </td>
-
                                     </tr>
 
                                 <?php } ?>
@@ -279,7 +309,6 @@ $jumlah = mysqli_num_rows($query);
                         </table>
 
                     </div>
-
                 </div>
             </div>
 
@@ -291,7 +320,7 @@ $jumlah = mysqli_num_rows($query);
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-<!-- Bootstrap 5 JS -->
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- DataTables JS -->
@@ -314,10 +343,8 @@ $(document).ready(function () {
 
         paging: true,
 
-        // Urutkan berdasarkan tanggal terbaru
         order: [[1, 'desc']],
 
-        // Pengaturan kolom
         columnDefs: [
             {
                 orderable: false,
@@ -326,7 +353,6 @@ $(document).ready(function () {
             }
         ],
 
-        // Nomor urut otomatis
         drawCallback: function () {
 
             var api = this.api();
@@ -344,7 +370,6 @@ $(document).ready(function () {
 
         },
 
-        // Bahasa Indonesia
         language: {
 
             search: "Cari di tabel:",

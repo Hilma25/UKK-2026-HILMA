@@ -5,8 +5,11 @@
 include 'includes/cek_session.php';
 include 'config/koneksi.php';
 
-// Ambil siswa aktif yang BELUM ditempatkan
-// pada tahun ajaran yang sedang aktif
+// ========================================
+// 1. AMBIL SISWA AKTIF YANG BELUM DITEMPATKAN
+// PADA TAHUN AJARAN AKTIF
+// ========================================
+
 $siswa = mysqli_query(
     $koneksi,
     "SELECT s.id, s.nis, s.nama
@@ -28,7 +31,10 @@ $siswa = mysqli_query(
      ORDER BY s.nama ASC"
 );
 
-// Ambil hanya tahun ajaran yang aktif
+// ========================================
+// 2. AMBIL TAHUN AJARAN AKTIF
+// ========================================
+
 $tahun = mysqli_query(
     $koneksi,
     "SELECT id, nama
@@ -37,7 +43,10 @@ $tahun = mysqli_query(
      ORDER BY id DESC"
 );
 
-// Ambil daftar kelas aktif
+// ========================================
+// 3. AMBIL DAFTAR KELAS AKTIF
+// ========================================
+
 $kelas = mysqli_query(
     $koneksi,
     "SELECT id, nama, tingkat, jurusan
@@ -46,7 +55,10 @@ $kelas = mysqli_query(
      ORDER BY nama ASC"
 );
 
-// Ambil data penempatan siswa
+// ========================================
+// 4. AMBIL DATA PENEMPATAN SISWA
+// ========================================
+
 $sql = "SELECT
             ks.id,
             s.nis,
@@ -57,11 +69,14 @@ $sql = "SELECT
             k.jurusan,
             ks.tanggal_mulai,
             ks.tanggal_selesai,
-            s.status_aktif
+            ks.status_aktif
         FROM t_kelas_siswa ks
-        LEFT JOIN t_siswa s ON ks.siswa_id = s.id
-        LEFT JOIN t_tahun_ajaran ta ON ks.tahun_ajaran_id = ta.id
-        LEFT JOIN t_kelas k ON ks.kelas_id = k.id
+        LEFT JOIN t_siswa s
+            ON ks.siswa_id = s.id
+        LEFT JOIN t_tahun_ajaran ta
+            ON ks.tahun_ajaran_id = ta.id
+        LEFT JOIN t_kelas k
+            ON ks.kelas_id = k.id
         ORDER BY ks.id DESC";
 
 $hasil = mysqli_query($koneksi, $sql);
@@ -78,6 +93,10 @@ $hasil = mysqli_query($koneksi, $sql);
 
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
           rel="stylesheet">
 
     <!-- DataTables Bootstrap 5 -->
@@ -330,6 +349,7 @@ $hasil = mysqli_query($koneksi, $sql);
                                     <th>Tanggal Mulai</th>
                                     <th>Tanggal Selesai</th>
                                     <th>Status</th>
+                                    <th>Aksi</th>
                                 </tr>
                             </thead>
 
@@ -338,6 +358,7 @@ $hasil = mysqli_query($koneksi, $sql);
                                 <?php while ($row = mysqli_fetch_assoc($hasil)) { ?>
 
                                     <tr>
+
                                         <td></td>
 
                                         <td>
@@ -372,8 +393,9 @@ $hasil = mysqli_query($koneksi, $sql);
                                             <?= htmlspecialchars($row['tanggal_selesai'] ?? '-') ?>
                                         </td>
 
+                                        <!-- STATUS -->
                                         <td>
-                                            <?php if ($row['status_aktif'] == 1) { ?>
+                                            <?php if ((int) $row['status_aktif'] === 1) { ?>
 
                                                 <span class="badge bg-success">
                                                     Aktif
@@ -387,6 +409,27 @@ $hasil = mysqli_query($koneksi, $sql);
 
                                             <?php } ?>
                                         </td>
+
+                                        <!-- AKSI -->
+                                        
+                                        <td>
+                                            <div class="d-flex gap-2">
+
+                                                <a href="edit_penempatan_siswa.php?id=<?= (int) $row['id']; ?>"
+                                                class="btn btn-warning btn-sm">
+                                                    Edit
+                                                </a>
+
+                                                <a href="hapus_penempatan_siswa.php?id=<?= (int) $row['id']; ?>"
+                                                class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Yakin ingin menghapus data penempatan siswa ini?');">
+                                                    Hapus
+                                                </a>
+
+                                            </div>
+                                        </td>
+
+
                                     </tr>
 
                                 <?php } ?>
@@ -416,7 +459,7 @@ $hasil = mysqli_query($koneksi, $sql);
 <!-- DataTables Bootstrap 5 -->
 <script src="https://cdn.datatables.net/2.3.4/js/dataTables.bootstrap5.min.js"></script>
 
-<!-- Inisialisasi DataTables -->
+<!-- INISIALISASI DATATABLES -->
 <script>
 $(document).ready(function () {
 
@@ -447,18 +490,20 @@ $(document).ready(function () {
 
         columnDefs: [
             {
-                targets: 0,
+                targets: [0, 10],
                 orderable: false,
                 searchable: false
             }
         ],
 
         drawCallback: function () {
+
             var api = this.api();
 
             api.column(0, { page: 'current' }).nodes().each(function (cell, i) {
                 cell.innerHTML = i + 1 + api.page.info().start;
             });
+
         }
 
     });

@@ -221,9 +221,9 @@ if (!$hasil) {
             <!-- DATA PELANGGARAN -->
             <div class="card">
 
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0">Data Pelanggaran yang Belum Ditindak</h5>
-                </div>
+                <div class="card-header bg-dark text-white no-print">
+                        <h5 class="mb-0">Data Pelanggaran yang Belum Ditindak</h5>
+                    </div>
 
                 <div class="card-body">
 
